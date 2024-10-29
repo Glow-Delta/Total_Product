@@ -89,14 +89,22 @@ void setup() {
 
   setupMCP23017();
 
-  //Attach interrupt to pin 3 (INTA)
-  attachInterrupt(digitalPinToInterrupt(1), handleInterruptA, CHANGE);  // Trigger on CHANGE (INTA goes LOW)
-  attachInterrupt(digitalPinToInterrupt(0), handleInterruptB, CHANGE);  // Trigger on CHANGE (INTA goes LOW)
+  attachInterrupts();
 
   interuptedA = false;
   interuptedB = false;
 
   mySerial.begin(4800); // Initialize SoftwareSerial
+}
+
+void attachInterrupts() {
+  attachInterrupt(digitalPinToInterrupt(1), handleInterruptA, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(0), handleInterruptB, CHANGE);
+}
+
+void detachInterrupts() {
+  detachInterrupt(digitalPinToInterrupt(1));
+  detachInterrupt(digitalPinToInterrupt(0));
 }
 
 void loop() {
@@ -373,13 +381,12 @@ int getAmountOfActivatedSensors() {
 }
 
 void send_serial(int id, int activation) {
-  noInterrupts();
+  detachInterrupts();
   Serial.println("Sending message");
   String message = "id=" + String(id); // Convert id to String
   message += ":activation_level=" + String(activation); // Convert activation to String
   message += '\n';
   mySerial.println(message); // Send the message over serial
   mySerial.flush(); // Ensure the message is sent
-  interrupts();
-  delay(1000);
+  attachInterrupts();
 }
